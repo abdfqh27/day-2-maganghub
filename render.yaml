@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: digitalisasi-kak
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: "Digitalisasi KAK"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        generateValue: true
+      - key: SOFFICE_BINARY
+        value: /usr/bin/soffice
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync

@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\KakSubmission;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use PhpOffice\PhpWord\TemplateProcessor;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use RuntimeException;
 
 class KakDocumentGenerator
@@ -36,10 +36,26 @@ class KakDocumentGenerator
             throw new RuntimeException("Template KAK tidak ditemukan. Harap jalankan 'php artisan kak:prepare-template' terlebih dahulu.");
         }
 
-        // 2. Prepare output directory
+        // 2. Prepare output directory & verify writability
         $outputDir = storage_path('app/output');
         if (!is_dir($outputDir)) {
-            @mkdir($outputDir, 0755, true);
+            if (!@mkdir($outputDir, 0775, true) && !is_dir($outputDir)) {
+                throw new RuntimeException("Gagal membuat direktori output: [{$outputDir}]. Periksa permission folder storage.");
+            }
+        }
+        if (!is_writable($outputDir)) {
+            throw new RuntimeException("Direktori output [{$outputDir}] tidak dapat ditulisi (not writable). Periksa izin folder sistem.");
+        }
+
+        // Prepare soffice HOME directory & verify writability
+        $sofficeHome = storage_path('app/soffice_home');
+        if (!is_dir($sofficeHome)) {
+            if (!@mkdir($sofficeHome, 0775, true) && !is_dir($sofficeHome)) {
+                throw new RuntimeException("Gagal membuat direktori HOME LibreOffice: [{$sofficeHome}]. Periksa permission folder storage.");
+            }
+        }
+        if (!is_writable($sofficeHome)) {
+            throw new RuntimeException("Direktori HOME LibreOffice [{$sofficeHome}] tidak dapat ditulisi (not writable). Periksa izin folder sistem.");
         }
 
         $id = $submission->id ?: 'temp_' . uniqid();
@@ -113,36 +129,108 @@ class KakDocumentGenerator
         // Format is 'pdf': convert via LibreOffice soffice headless
         $sofficeBinary = $this->resolveSofficeBinary();
 
-        $process = new Process([
+        // Unique profile directory for this conversion to avoid lock conflicts
+        // Prefer system temp directory to ensure shortest valid path without space issues
+        $profileUuid = (string) Str::uuid();
+        $tempBase = sys_get_temp_dir();
+        $profileDir = (is_dir($tempBase) && is_writable($tempBase))
+            ? rtrim($tempBase, '\\/') . DIRECTORY_SEPARATOR . 'lo_prof_' . $profileUuid
+            : storage_path("app/soffice_profiles/{$profileUuid}");
+
+        if (!is_dir($profileDir)) {
+            @mkdir($profileDir, 0775, true);
+        }
+
+        // Standard RFC file URI for LibreOffice UserInstallation with encoded spaces
+        $profileNormalized = str_replace('\\', '/', $profileDir);
+        $userInstallationUri = 'file:///' . str_replace(' ', '%20', ltrim($profileNormalized, '/'));
+
+        $command = [
             $sofficeBinary,
+            "-env:UserInstallation={$userInstallationUri}",
             '--headless',
             '--convert-to',
             'pdf',
             '--outdir',
             $outputDir,
             $docxFullPath,
-        ]);
+        ];
 
-        $process->setTimeout(120);
+        // Prepare environment variables required by LibreOffice to avoid crash 0xC0000409 in web server context
+        $sofficeDir = is_file($sofficeBinary) ? dirname(realpath($sofficeBinary)) : '';
+        $currentPath = getenv('PATH') ?: (isset($_SERVER['PATH']) ? $_SERVER['PATH'] : '');
+        $envPath = ($sofficeDir && !str_contains($currentPath, $sofficeDir))
+            ? $sofficeDir . PATH_SEPARATOR . $currentPath
+            : $currentPath;
+
+        $envVariables = [
+            'HOME' => $sofficeHome,
+            'PATH' => $envPath,
+        ];
+
+        // Inject critical Windows environment variables when running on Windows
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $envVariables['SYSTEMROOT'] = getenv('SYSTEMROOT') ?: (isset($_SERVER['SYSTEMROOT']) ? $_SERVER['SYSTEMROOT'] : 'C:\\Windows');
+            $envVariables['SYSTEMDRIVE'] = getenv('SYSTEMDRIVE') ?: (isset($_SERVER['SYSTEMDRIVE']) ? $_SERVER['SYSTEMDRIVE'] : 'C:');
+            $envVariables['TEMP'] = $tempBase;
+            $envVariables['TMP'] = $tempBase;
+            $envVariables['USERPROFILE'] = getenv('USERPROFILE') ?: $tempBase;
+            $envVariables['APPDATA'] = getenv('APPDATA') ?: $tempBase;
+            $envVariables['LOCALAPPDATA'] = getenv('LOCALAPPDATA') ?: $tempBase;
+        }
 
         try {
-            $process->run();
-        } catch (\Exception $e) {
-            // Keep docx if error happens for troubleshooting
-            Log::error("LibreOffice execution error: " . $e->getMessage());
+            $result = Process::timeout(120)
+                ->env($envVariables)
+                ->run($command);
+        } catch (\Throwable $e) {
+            Log::error("LibreOffice Process invocation exception: " . $e->getMessage(), [
+                'command' => implode(' ', $command),
+                'exception' => get_class($e),
+            ]);
+
             throw new RuntimeException(
                 "Gagal menjalankan LibreOffice untuk konversi PDF: " . $e->getMessage() . 
                 ". Pastikan LibreOffice terpasang di sistem atau gunakan opsi unduh Word (.docx)."
             );
+        } finally {
+            // Clean up temporary unique profile directory
+            $this->deleteDirectory($profileDir);
         }
 
-        if (!$process->isSuccessful() || !file_exists($pdfFullPath)) {
-            $errorOutput = trim($process->getErrorOutput() ?: $process->getOutput());
-            Log::error("LibreOffice PDF conversion failed: {$errorOutput}");
+        $exitCode = $result->exitCode();
+        $output = trim($result->output());
+        $errorOutput = trim($result->errorOutput());
+        $commandString = implode(' ', array_map(fn($arg) => str_contains($arg, ' ') ? "\"{$arg}\"" : $arg, $command));
+
+        $pdfGenerated = file_exists($pdfFullPath) && filesize($pdfFullPath) > 0;
+
+        if (!$result->successful() || !$pdfGenerated) {
+            // Filter non-fatal embedded Python library warning from stderr if present
+            $cleanedStderr = trim(str_ireplace('Could not find platform independent libraries <prefix>', '', $errorOutput));
+            $rawError = $cleanedStderr !== '' ? $cleanedStderr : ($output !== '' ? $output : ($errorOutput !== '' ? $errorOutput : "Exit code: {$exitCode}"));
+
+            Log::error("LibreOffice PDF conversion failed", [
+                'command' => $commandString,
+                'exit_code' => $exitCode,
+                'output' => $output,
+                'error_output' => $errorOutput,
+                'pdf_exists' => file_exists($pdfFullPath),
+                'pdf_size' => file_exists($pdfFullPath) ? filesize($pdfFullPath) : 0,
+            ]);
+
             throw new RuntimeException(
-                "Konversi ke PDF gagal. Pesan error: " . ($errorOutput ?: 'File PDF tidak terbentuk.') . 
-                ". Pastikan LibreOffice (soffice) terpasang di environment atau unduh sebagai Word (.docx)."
+                "Konversi ke PDF gagal (Exit code: {$exitCode}). Pesan error dari LibreOffice: {$rawError}."
             );
+        }
+
+        // Explicit verification: ensure PDF exists and has non-zero size
+        if (!file_exists($pdfFullPath) || filesize($pdfFullPath) === 0) {
+            Log::error("File PDF tidak terbentuk di path tujuan", [
+                'pdf_path' => $pdfFullPath,
+                'command' => $commandString,
+            ]);
+            throw new RuntimeException("Konversi selesai namun file PDF tidak ditemukan atau kosong di path: {$pdfFullPath}");
         }
 
         // Delete temporary DOCX since user requested PDF only (as required by specifications)
@@ -173,8 +261,19 @@ class KakDocumentGenerator
 
         // Check Windows common paths if on Windows
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            // If configured path points to soffice.exe, check if soffice.com exists in the same directory
+            if (str_ends_with(strtolower($configured), 'soffice.exe')) {
+                $comCandidate = substr($configured, 0, -4) . '.com';
+                if (file_exists($comCandidate)) {
+                    return $comCandidate;
+                }
+            }
+
             $candidates = [
                 $configured,
+                // On Windows, soffice.com is the CLI console wrapper that streams output & returns exit codes properly
+                'C:\\Program Files\\LibreOffice\\program\\soffice.com',
+                'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.com',
                 'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
                 'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
             ];
@@ -428,5 +527,34 @@ class KakDocumentGenerator
         $zip->close();
 
         return true;
+    }
+
+    /**
+     * Recursively delete a directory and its contents.
+     */
+    protected function deleteDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $items = @scandir($dir);
+        if ($items === false) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $path = $dir . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($path)) {
+                $this->deleteDirectory($path);
+            } else {
+                @unlink($path);
+            }
+        }
+
+        @rmdir($dir);
     }
 }

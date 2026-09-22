@@ -208,4 +208,39 @@ class KakSubmissionTest extends TestCase
         $response->assertSee(route('submissions.download', $submission));
         $response->assertSee('<iframe id="downloadIframe"', false);
     }
+
+    /**
+     * Test regenerating submission into PDF format using LibreOffice headless.
+     */
+    public function test_regenerating_submission_to_pdf_format(): void
+    {
+        $submission = KakSubmission::firstOrCreate(
+            ['judul' => 'KAK Testing Regenerate PDF'],
+            [
+                'data' => [
+                    'field_001' => 'Dinas Kesehatan',
+                    'field_002' => '2026',
+                    'field_003' => 'Pemberian Makanan Tambahan',
+                ],
+                'output_format' => 'docx',
+                'status' => 'draft',
+            ]
+        );
+
+        $response = $this->post(route('submissions.regenerate', $submission), [
+            'output_format' => 'pdf',
+        ]);
+
+        $response->assertRedirect(route('submissions.show', $submission));
+        $response->assertSessionHas('success');
+        $response->assertSessionMissing('error');
+
+        $updated = $submission->fresh();
+        $this->assertEquals('pdf', $updated->output_format);
+        $this->assertNotNull($updated->generated_file_path);
+
+        $pdfFullPath = storage_path('app/' . $updated->generated_file_path);
+        $this->assertFileExists($pdfFullPath);
+        $this->assertGreaterThan(0, filesize($pdfFullPath));
+    }
 }
