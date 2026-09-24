@@ -542,6 +542,150 @@
             </div>
         </div>
     </form>
+
+    <!-- Floating Contextual AI Assistant Widget -->
+    <div x-data="aiAssistantWidget()" class="relative z-50">
+        <!-- Floating Trigger Button -->
+        <div class="fixed bottom-6 right-6 flex items-center space-x-2">
+            <button type="button"
+                    @click="toggleChat()"
+                    class="group relative inline-flex items-center space-x-2.5 px-4 py-3 bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white rounded-2xl shadow-xl hover:shadow-brand-500/30 transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-brand-500/20"
+                    title="Tanya Asisten AI Kontekstual">
+                <!-- Online Pulse Dot -->
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+                </span>
+                <svg class="w-5 h-5 text-amber-200 group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-xs sm:text-sm font-bold tracking-tight">Tanya Asisten KAK</span>
+            </button>
+        </div>
+
+        <!-- Chat Window Modal / Panel -->
+        <div x-show="isOpen"
+             x-cloak
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200 transform"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-8 scale-95"
+             class="fixed bottom-20 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[420px] h-[560px] max-h-[calc(100vh-6rem)] bg-white rounded-3xl shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden z-50">
+            
+            <!-- Chat Header -->
+            <div class="px-5 py-4 bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white flex items-center justify-between shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-indigo-500 flex items-center justify-center text-white shadow-inner font-bold text-sm">
+                        ✨
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-sm font-extrabold leading-none">Asisten AI KAK</h3>
+                            <span class="text-[10px] uppercase font-bold tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded-full">Aktif</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 mt-1 truncate max-w-[220px]" x-text="'Konteks: ' + getActiveSectionTitle()"></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-1">
+                    <button type="button"
+                            @click="clearMessages()"
+                            class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+                            title="Hapus Riwayat Chat">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    <button type="button"
+                            @click="isOpen = false"
+                            class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+                            title="Tutup Widget">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Context Badge Notice -->
+            <div class="bg-brand-50/80 border-b border-brand-100 px-4 py-2 flex items-center justify-between text-[11px] text-brand-800">
+                <div class="flex items-center space-x-1.5 truncate">
+                    <svg class="w-3.5 h-3.5 text-brand-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="truncate">Jawaban disesuaikan dengan bagian: <strong x-text="getActiveSectionTitle()"></strong></span>
+                </div>
+            </div>
+
+            <!-- Chat Messages Scroll Container -->
+            <div x-ref="messagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-50/50 text-xs">
+                <template x-for="(msg, index) in messages" :key="index">
+                    <div class="flex" :class="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
+                        <div class="flex items-start space-x-2 max-w-[85%]" :class="msg.sender === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'">
+                            <!-- Avatar -->
+                            <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] flex-shrink-0 mt-0.5"
+                                 :class="msg.sender === 'user' ? 'bg-brand-600 text-white' : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'">
+                                <span x-text="msg.sender === 'user' ? 'Anda' : 'AI'"></span>
+                            </div>
+
+                            <!-- Bubble Message -->
+                            <div class="p-3 rounded-2xl shadow-xs leading-relaxed"
+                                 :class="msg.sender === 'user' 
+                                     ? 'bg-brand-600 text-white rounded-tr-xs' 
+                                     : (msg.isError 
+                                         ? 'bg-rose-50 text-rose-800 border border-rose-200 rounded-tl-xs' 
+                                         : 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-xs')">
+                                <div class="prose prose-xs max-w-none break-words" x-html="renderMessage(msg.text)"></div>
+                                <div class="text-[9px] mt-1 text-right"
+                                     :class="msg.sender === 'user' ? 'text-brand-200' : 'text-slate-400'"
+                                     x-text="msg.time"></div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Typing Indicator Bubble -->
+                <div x-show="isLoading" class="flex justify-start">
+                    <div class="flex items-start space-x-2">
+                        <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-[10px]">
+                            AI
+                        </div>
+                        <div class="bg-white border border-slate-200 px-3.5 py-2.5 rounded-2xl rounded-tl-xs shadow-xs flex items-center space-x-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse [animation-delay:0.2s]"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse [animation-delay:0.4s]"></span>
+                            <span class="text-[11px] text-slate-500 ml-1">Asisten sedang menganalisis dokumen...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions Chips -->
+            <div class="px-3 py-2 bg-white border-t border-slate-100 flex items-center space-x-1.5 overflow-x-auto scrollbar-none text-[11px]">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">Coba:</span>
+                <button type="button" @click="askQuick('Apa itu GAP dalam KAK?')" class="px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60">
+                    💡 Apa itu GAP?
+                </button>
+                <button type="button" @click="askQuick('Bagaimana aturan kode RO dan KRO?')" class="px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60">
+                    📋 Kode RO / KRO
+                </button>
+                <button type="button" @click="askQuick('Bagaimana format pengisian RAB dan SBM?')" class="px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60">
+                    💰 Format RAB
+                </button>
+            </div>
+
+            <!-- Chat Input Form -->
+            <form @submit.prevent="submitQuestion()" class="p-3 bg-white border-t border-slate-200/80 flex items-center space-x-2">
+                <input type="text"
+                       x-model="inputQuestion"
+                       :disabled="isLoading"
+                       placeholder="Tanyakan istilah atau panduan isian step ini..."
+                       class="flex-1 bg-slate-100 border border-slate-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-xs text-slate-800 rounded-xl px-3.5 py-2.5 transition outline-none disabled:opacity-60">
+
+                <button type="submit"
+                        :disabled="isLoading || !inputQuestion.trim()"
+                        class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 text-white rounded-xl font-bold text-xs shadow-sm transition flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -807,6 +951,144 @@ function kakWizard() {
             this.autoSavedMessage = 'Jadwal dikosongkan!';
             setTimeout(() => { this.autoSavedMessage = ''; }, 2500);
             this.saveCurrentStepSession(false);
+        }
+    };
+}
+
+function aiAssistantWidget() {
+    return {
+        isOpen: false,
+        inputQuestion: '',
+        isLoading: false,
+        messages: [
+            {
+                sender: 'assistant',
+                text: 'Halo! Saya asisten AI untuk memandu penyusunan dokumen KAK resmi. Anda dapat menanyakan istilah perencanaan (seperti GAP, DIPA, RO/KRO) atau panduan format pengisian untuk step formulir yang sedang Anda buka saat ini.',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                isError: false
+            }
+        ],
+
+        toggleChat() {
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.$nextTick(() => this.scrollToBottom());
+            }
+        },
+
+        getActiveSectionTitle() {
+            if (this.stepTitles && typeof this.currentStep !== 'undefined' && this.stepTitles[this.currentStep]) {
+                return this.stepTitles[this.currentStep];
+            }
+            return 'Formulir KAK';
+        },
+
+        askQuick(question) {
+            this.inputQuestion = question;
+            this.submitQuestion();
+        },
+
+        submitQuestion() {
+            const q = this.inputQuestion.trim();
+            if (!q || this.isLoading) return;
+
+            const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Add user message
+            this.messages.push({
+                sender: 'user',
+                text: q,
+                time: nowTime,
+                isError: false
+            });
+
+            const activeSection = this.getActiveSectionTitle();
+            this.inputQuestion = '';
+            this.isLoading = true;
+            this.$nextTick(() => this.scrollToBottom());
+
+            fetch("{{ route('kak.assistant.ask') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    question: q,
+                    current_section: activeSection
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.isLoading = false;
+                const ansTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if (data.status === 'success') {
+                    this.messages.push({
+                        sender: 'assistant',
+                        text: data.answer,
+                        time: ansTime,
+                        isError: false
+                    });
+                } else {
+                    this.messages.push({
+                        sender: 'assistant',
+                        text: data.answer || 'Asisten AI sedang tidak tersedia, silakan lanjutkan mengisi formulir.',
+                        time: ansTime,
+                        isError: true
+                    });
+                }
+                this.$nextTick(() => this.scrollToBottom());
+            })
+            .catch(err => {
+                this.isLoading = false;
+                const errTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                this.messages.push({
+                    sender: 'assistant',
+                    text: 'Asisten AI sedang tidak dapat dijangkau. Jangan khawatir, proses pengisian formulir KAK Anda tetap berjalan normal.',
+                    time: errTime,
+                    isError: true
+                });
+                this.$nextTick(() => this.scrollToBottom());
+            });
+        },
+
+        clearMessages() {
+            this.messages = [
+                {
+                    sender: 'assistant',
+                    text: 'Riwayat percakapan telah dibersihkan. Ada yang ingin Anda tanyakan terkait bagian ' + this.getActiveSectionTitle() + '?',
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    isError: false
+                }
+            ];
+        },
+
+        scrollToBottom() {
+            if (this.$refs.messagesContainer) {
+                this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
+            }
+        },
+
+        renderMessage(text) {
+            if (!text) return '';
+            // Basic markdown converter: bold, line breaks, bullet points
+            let escaped = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Bold **text**
+            escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+            
+            // Bullet points • or -
+            escaped = escaped.replace(/^[•\-]\s+(.*)$/gm, '<div class="flex items-start space-x-1.5 my-0.5"><span class="text-brand-600 font-bold">•</span><span>$1</span></div>');
+
+            // Line breaks
+            escaped = escaped.replace(/\n\n/g, '<div class="h-2"></div>');
+            escaped = escaped.replace(/\n/g, '<br>');
+
+            return escaped;
         }
     };
 }

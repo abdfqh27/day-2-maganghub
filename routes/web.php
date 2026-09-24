@@ -1,11 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\AiQueryController;
 use App\Http\Controllers\KakSubmissionController;
+use Illuminate\Support\Facades\Route;
 
 // Redirect home directly to submissions index
 Route::get('/', function () {
     return redirect()->route('submissions.index');
+});
+
+// AI Assistant & Natural Language Search Routes (Throttle 20 requests per minute)
+Route::prefix('kak')->name('kak.')->group(function () {
+    Route::post('/assistant/ask', [AiAssistantController::class, 'ask'])
+        ->middleware('throttle:20,1')
+        ->name('assistant.ask');
+
+    Route::post('/history/ai-search', [AiQueryController::class, 'search'])
+        ->middleware('throttle:20,1')
+        ->name('history.aiSearch');
 });
 
 // Group routes for KAK Submissions
