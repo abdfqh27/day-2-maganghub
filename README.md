@@ -134,11 +134,86 @@ Akses aplikasi melalui browser di: [http://127.0.0.1:8000](http://127.0.0.1:8000
 
 ---
 
-## Deployment Menggunakan Docker (Render / Cloud)
+## Fitur AI: Asisten Kontekstual & Query Bahasa Alami
 
-Project ini telah dilengkapi dengan `Dockerfile` siap pakai yang mencakup PHP 8.3, Composer, dan LibreOffice:
-1. Push repository ke Git (GitHub / GitLab).
-2. Di dashboard **Render.com**, buat **Web Service** baru dari repository ini.
-3. Pilih environment **Docker**.
-4. Set variabel environment database (MySQL).
-5. Render akan secara otomatis membangun container lengkap dengan LibreOffice headless sehingga fitur generate DOCX maupun konversi PDF langsung aktif.
+Aplikasi ini telah diperkaya dengan dua fitur kecerdasan buatan (AI) yang mengadopsi prinsip arsitektur dari proyek open source **`alibaba/open-code-review`**:
+
+### 1. AI Asisten Kontekstual (Chat Widget di Wizard)
+- **Tujuan**: Membantu pengguna (staf instansi/perencana) memahami istilah teknis perencanaan (seperti GAP, DIPA, RO/KRO, SBM, RAB) dan panduan pengisian formulir KAK secara langsung pada tiap tahapan wizard.
+- **Letak**: Tombol floating widget di pojok kanan bawah halaman wizard pengisian KAK (`/submissions/create`).
+- **Cara Kerja**:
+  1. Saat pengguna bertanya, frontend Alpine.js menyertakan informasi step yang sedang aktif (`current_section`).
+  2. `KnowledgeRetriever` melakukan pencarian *keyword matching* deterministik terhadap metadata `resources/templates/field_map.json` dan glosarium resmi `resources/data/glossary.json`.
+  3. Konteks spesifik disisipkan ke *scenario-tuned system prompt*, kemudian dikirim ke API AI (`swift`).
+  4. Riwayat tanya-jawab dicatat ke database (`ai_assistant_logs`) untuk audit dan evaluasi kualitas jawaban.
+
+### 2. AI Query Riwayat Submission (Tanya Data dalam Bahasa Alami)
+- **Tujuan**: Memungkinkan pencarian arsip dokumen KAK menggunakan bahasa percakapan sehari-hari tanpa harus mengatur filter manual satu per satu.
+- **Contoh Pertanyaan**:
+  - `"KAK draft bulan ini"`
+  - `"Dokumen final tahun 2026"`
+  - `"KAK dengan anggaran di atas 500 juta"`
+  - `"Dokumen KAK bulan lalu"`
+- **Cara Kerja**:
+  1. Pengguna memasukkan pertanyaan ke dalam search bar AI pada halaman `/submissions`.
+  2. `KakQueryAssistantService::parseQuery()` meminta model AI menerjemahkan maksud pengguna menjadi JSON filter terstruktur.
+  3. Hasil JSON divalidasi dan disanitasi ketat oleh `KakQueryFilterSchema` (hanya 5 field yang diizinkan: `status`, `bulan`, `tahun`, `min_anggaran`, `max_anggaran`).
+  4. Query builder Eloquent Laravel deterministik mengeksekusi pencarian ke database berdasarkan parameter yang tervalidasi.
+  5. Antarmuka menampilkan badge chip filter yang dipahami AI sebagai konfirmasi visual kepada pengguna, serta merender daftar dokumen yang sesuai secara instan via AJAX.
+
+---
+
+## Konfigurasi Klien AI (`.env`)
+
+Sistem menggunakan API kompatibel OpenAI (Swift AI) via package `openai-php/client`:
+
+```env
+SWIFT_AI_BASE_URI=https://ukisai.com/api/swift/v1
+SWIFT_AI_API_KEY=none
+```
+
+Konfigurasi ini dimuat di `config/services.php`:
+```php
+'swift_ai' => [
+    'base_uri' => env('SWIFT_AI_BASE_URI', 'https://ukisai.com/api/swift/v1'),
+    'api_key' => env('SWIFT_AI_API_KEY', 'none'),
+    'model' => 'swift',
+],
+```
+
+---
+
+## Prinsip Arsitektur & Guardrail Keamanan (WAJIB)
+
+Mengikuti pola arsitektur *hybrid deterministic + agent*:
+
+1. **AI TIDAK PERNAH Menyentuh Database Secara Langsung**:
+   - AI tidak diberi akses ke query builder, raw SQL, skema tabel, atau koneksi DB.
+   - AI hanya bertindak sebagai parser bahasa alami (ekstraksi intent parameter). Eksekusi query database 100% ditangani oleh Eloquent builder Laravel yang aman dari SQL Injection.
+2. **Output Terstruktur & Whitelist Schema (`KakQueryFilterSchema`)**:
+   - Parameter hasil ekstraksi AI divalidasi ketat terhadap skema yang diizinkan:
+     - `status`: hanya menerima `'draft'` atau `'final'`.
+     - `bulan`: integer `1-12` atau `'current'`.
+     - `tahun`: integer 4 digit (`2000-2100`).
+     - `min_anggaran` & `max_anggaran`: numerik non-negatif.
+   - Setiap field di luar whitelist diabaikan/dibersihkan secara otomatis.
+3. **Rate Limiting Per User/Session**:
+   - Kedua endpoint AI (`POST /kak/assistant/ask` dan `POST /kak/history/ai-search`) dilindungi middleware `throttle:20,1` (maksimal 20 request per menit per user/IP) untuk mencegah penyalahgunaan kuota API.
+4. **Timeout & Graceful Fallback**:
+   - Permintaan HTTP ke API AI dibatasi timeout maksimal 10 detik dengan koneksi timeout 5 detik.
+   - Jika API AI lambat atau tidak dapat diakses, sistem menampilkan pesan alternatif yang ramah tanpa pernah mengganggu ataupun memblokir proses pengisian wizard dan pengelolaan dokumen.
+5. **Caching Konteks Pengetahuan**:
+   - Hasil pencarian konteks `KnowledgeRetriever::retrieveContext()` disimpan dalam in-memory cache berdasarkan hash query dan seksi untuk menghindari proses pencarian berulang yang identik.
+
+---
+
+## Pengujian Fitur AI
+
+Untuk menguji fitur AI secara otomatis:
+```bash
+php artisan test --filter=AiFeaturesTest
+```
+
+Pengujian manual:
+1. **Asisten Wizard**: Buka `/submissions/create`, klik tombol **Tanya Asisten KAK** di pojok kanan bawah, ketik pertanyaan `"apa itu GAP"` atau klik chip saran.
+2. **Pencarian Riwayat**: Buka `/submissions`, masukkan `"KAK draft bulan ini"` pada search bar AI, lalu tekan tombol **Cari dengan AI**. Filter chip `Status: Draft` dan `Bulan Ini` akan muncul beserta daftar dokumen yang cocok.
