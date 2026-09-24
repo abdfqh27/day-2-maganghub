@@ -31,4 +31,10 @@ return [
         ],
     ],
 
+    'swift_ai' => [
+        'base_uri' => env('SWIFT_AI_BASE_URI', 'https://ukisai.com/api/swift/v1'),
+        'api_key' => env('SWIFT_AI_API_KEY', 'none'),
+        'model' => 'swift',
+    ],
+
 ];
