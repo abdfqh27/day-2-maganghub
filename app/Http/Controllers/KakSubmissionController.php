@@ -135,6 +135,7 @@ class KakSubmissionController extends Controller
             'data' => $allData,
             'status' => 'draft',
             'output_format' => $outputFormat,
+            'total_anggaran' => KakSubmission::extractTotalAnggaran($allData),
         ]);
 
         try {

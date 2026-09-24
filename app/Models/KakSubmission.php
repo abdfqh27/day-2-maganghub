@@ -26,6 +26,7 @@ class KakSubmission extends Model
         'data',
         'status',
         'output_format',
+        'total_anggaran',
         'generated_file_path',
     ];
 
@@ -36,7 +37,42 @@ class KakSubmission extends Model
      */
     protected $casts = [
         'data' => 'array',
+        'total_anggaran' => 'float',
     ];
+
+    /**
+     * Helper to extract numeric budget from RAB / form data (e.g. field_155).
+     */
+    public static function extractTotalAnggaran(?array $data): ?float
+    {
+        if (empty($data)) {
+            return null;
+        }
+
+        // field_155 is 'Total Nominal Anggaran Biaya (Rupiah di Penutup)'
+        $raw = $data['field_155'] ?? null;
+        if (!$raw) {
+            foreach ($data as $key => $val) {
+                if (is_string($val) && preg_match('/rp\.?\s*[\d\.\,]+/i', $val)) {
+                    $raw = $val;
+                    break;
+                }
+            }
+        }
+
+        if (!$raw) {
+            return null;
+        }
+
+        // Clean currency symbols, dots, commas, spaces
+        // e.g. "Rp. 850.000.000,-" -> 850000000
+        $cleaned = preg_replace('/[^\d]/', '', (string)$raw);
+        if ($cleaned === '') {
+            return null;
+        }
+
+        return (float)$cleaned;
+    }
 
     /**
      * Helper to get safe title.
