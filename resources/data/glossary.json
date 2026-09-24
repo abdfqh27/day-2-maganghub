@@ -1,0 +1,74 @@
+[
+    {
+        "term": "KAK",
+        "alias": ["Kerangka Acuan Kegiatan", "Kerangka Acuan Kerja", "Term of Reference", "TOR"],
+        "definition": "Dokumen perencanaan resmi instansi pemerintah yang memuat latar belakang, maksud dan tujuan, indikator keluaran, metode pelaksanaan, waktu, dan rincian alokasi biaya sebuah kegiatan.",
+        "category": "Perencanaan & Anggaran"
+    },
+    {
+        "term": "GAP",
+        "alias": ["Gender Analysis Pathway", "Analisis Gender", "Pengarusutamaan Gender", "PUG"],
+        "definition": "Metode analisis gender resmi yang diwajibkan Bappenas dan Kementerian PPPA untuk memastikan kebijakan, program, dan anggaran pemerintah responsif terhadap isu kesetaraan gender dengan menelaah data terpilah, isu akses, partisipasi, kontrol, dan manfaat.",
+        "category": "Kebijakan & Analisis"
+    },
+    {
+        "term": "DIPA",
+        "alias": ["Daftar Isian Pelaksanaan Anggaran"],
+        "definition": "Dokumen pelaksanaan anggaran yang diterbitkan oleh Kementerian Keuangan dan menjadi dasar bagi kementerian/lembaga untuk melakukan pengeluaran uang negara dan pelaksanaan program kerja tahun berjalan.",
+        "category": "Perencanaan & Anggaran"
+    },
+    {
+        "term": "RO / KRO",
+        "alias": ["Rincian Output", "Klasifikasi Rincian Output", "RO", "KRO"],
+        "definition": "Kodefikasi hierarki penganggaran berbasis kinerja dalam sistem penganggaran nasional (Redesain Sistem Perencanaan dan Penganggaran / RSPP). KRO mengelompokkan muatan output yang homogen, sedangkan RO adalah keluaran riil yang dihasilkan oleh unit kerja.",
+        "category": "Perencanaan & Anggaran"
+    },
+    {
+        "term": "RAB",
+        "alias": ["Rencana Anggaran Biaya", "Perkiraan Biaya", "Anggaran"],
+        "definition": "Perhitungan rincian perkiraan biaya yang diperlukan untuk pelaksanaan setiap tahapan kegiatan dalam KAK, mencakup komponen belanja bahan, honor narasumber, paket meeting, dan perjalanan dinas sesuai Standar Biaya Masukan (SBM).",
+        "category": "Perencanaan & Anggaran"
+    },
+    {
+        "term": "PHPWord",
+        "alias": ["Pustaka PHPWord", "Library Word"],
+        "definition": "Pustaka open-source berbasis PHP untuk membaca, membuat, dan memanipulasi file dokumen pemrosesan kata berbasis format OpenXML (.docx).",
+        "category": "Teknis Sistem"
+    },
+    {
+        "term": "TemplateProcessor",
+        "alias": ["Template Processor"],
+        "definition": "Kelas khusus di dalam PHPWord yang bekerja dengan membedah file XML dokumen Word dan melakukan substitusi tag penanda (${tag_name}) secara efisien ke template master KAK resmi.",
+        "category": "Teknis Sistem"
+    },
+    {
+        "term": "Merge-Field Tag",
+        "alias": ["Tag Template", "Field Tag", "Placeholder Tag"],
+        "definition": "Penanda unik berupa variabel (contoh: ${field_001}, ${field_155}) yang disisipkan ke dalam dokumen template Word untuk digantikan oleh data masukan formulir wizard secara dinamis.",
+        "category": "Teknis Sistem"
+    },
+    {
+        "term": "SPBE",
+        "alias": ["Sistem Pemerintahan Berbasis Elektronik", "E-Government"],
+        "definition": "Penyelenggaraan pemerintahan yang memanfaatkan teknologi informasi dan komunikasi untuk memberikan layanan kepada instansi pemerintah, aparatur sipil negara, pelaku bisnis, dan masyarakat luas.",
+        "category": "Tata Kelola Pemerintahan"
+    },
+    {
+        "term": "Bappenas",
+        "alias": ["Badan Perencanaan Pembangunan Nasional", "Kementerian PPN"],
+        "definition": "Lembaga pemerintah yang bertugas merencanakan pembangunan nasional dan menetapkan panduan perencanaan program serta analisis penganggaran termasuk kesetaraan gender.",
+        "category": "Instansi"
+    },
+    {
+        "term": "Kemenko PMK",
+        "alias": ["Kementerian Koordinator Bidang Pembangunan Manusia dan Kebudayaan"],
+        "definition": "Kementerian koordinator yang memimpin, mengoordinasikan, dan mengendalikan penyusunan dan pelaksanaan kebijakan di bidang pembangunan manusia dan kebudayaan.",
+        "category": "Instansi"
+    },
+    {
+        "term": "Standar Biaya Masukan",
+        "alias": ["SBM", "Standar Biaya"],
+        "definition": "Batas tertinggi atau estimasi biaya yang ditetapkan Menteri Keuangan sebagai pedoman dalam penyusunan rencana kerja dan anggaran kementerian/lembaga.",
+        "category": "Perencanaan & Anggaran"
+    }
+]
