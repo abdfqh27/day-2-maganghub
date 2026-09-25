@@ -223,6 +223,13 @@ class PrepareKakTemplate extends Command
             }
         }
 
+        // 4b. Bersihkan paragraf kosong berlebih di halaman cover sebelum page break
+        // agar tidak menghasilkan halaman kosong di Microsoft Word
+        $removedCoverParas = $this->cleanCoverPageXml($dom, $xpath);
+        if ($removedCoverParas > 0) {
+            $this->line("Cleaned {$removedCoverParas} redundant empty paragraphs from cover page.");
+        }
+
         // 5. Save updated document.xml back into zip
         $newXml = $dom->saveXML();
         $zip->deleteName('word/document.xml');
@@ -661,6 +668,97 @@ class PrepareKakTemplate extends Command
     {
         // Primary fields: Asisten Deputi, Tahun Anggaran, Judul / Topik
         return $index <= 3;
+    }
+
+    /**
+     * Bersihkan paragraf kosong berlebih pada halaman cover sebelum page break.
+     * Pada Microsoft Word, spasi/paragraf kosong berlebih di bagian bawah cover
+     * meluap (spillover) ke halaman 2, sehingga w:br type="page" terdorong ke halaman 3
+     * dan mengakibatkan halaman 2 kosong (blank page).
+     *
+     * @param \DOMDocument $dom
+     * Paragraf yang berisi logo/gambar (<w:drawing>, <w:pict>) TETAP dijaga dan tidak dihapus.
+     *
+     * @param \DOMDocument $dom
+     * @param \DOMXPath $xpath
+     * @return int Jumlah paragraf kosong yang dihapus
+     */
+    protected function cleanCoverPageXml(\DOMDocument $dom, \DOMXPath $xpath): int
+    {
+        $firstBr = $xpath->query('//w:br[@w:type="page"]')->item(0);
+        if (!$firstBr) {
+            return 0;
+        }
+
+        $breakPara = $firstBr;
+        while ($breakPara && $breakPara->nodeName !== 'w:p') {
+            $breakPara = $breakPara->parentNode;
+        }
+
+        $body = $xpath->query('//w:body')->item(0);
+        if (!$body || !$breakPara) {
+            return 0;
+        }
+
+        // Kumpulkan semua paragraf sebelum page break cover
+        $parasBefore = [];
+        foreach ($body->childNodes as $node) {
+            if ($node === $breakPara) {
+                break;
+            }
+            if ($node->nodeName === 'w:p') {
+                $parasBefore[] = $node;
+            }
+        }
+
+        $removed = 0;
+
+        // 1. Hapus semua paragraf kosong tepat sebelum page break (trailing empty paragraphs)
+        for ($i = count($parasBefore) - 1; $i >= 0; $i--) {
+            $p = $parasBefore[$i];
+            if ($this->isParagraphTrulyEmpty($p, $xpath)) {
+                $p->parentNode->removeChild($p);
+                unset($parasBefore[$i]);
+                $removed++;
+            } else {
+                break;
+            }
+        }
+
+        $parasBefore = array_values($parasBefore);
+
+        // 2. Gabungkan paragraf kosong berurutan di dalam cover menjadi maksimal 1
+        $prevWasEmpty = false;
+        foreach ($parasBefore as $p) {
+            $isEmpty = $this->isParagraphTrulyEmpty($p, $xpath);
+            if ($isEmpty && $prevWasEmpty) {
+                $p->parentNode->removeChild($p);
+                $removed++;
+            } else {
+                $prevWasEmpty = $isEmpty;
+            }
+        }
+
+        return $removed;
+    }
+
+    /**
+     * Cek apakah sebuah paragraf benar-benar kosong.
+     * Paragraf TIDAK dianggap kosong jika memiliki teks, gambar (<w:drawing>),
+     * objek grafis (<w:pict>, <mc:AlternateContent>), atau page break (<w:br>).
+     */
+    protected function isParagraphTrulyEmpty(\DOMNode $p, \DOMXPath $xpath): bool
+    {
+        if (trim($p->textContent) !== '') {
+            return false;
+        }
+
+        $visualElements = $xpath->query('.//w:drawing | .//w:pict | .//mc:AlternateContent | .//w:br[@w:type="page"]', $p);
+        if ($visualElements && $visualElements->length > 0) {
+            return false;
+        }
+
+        return true;
     }
 }
 
