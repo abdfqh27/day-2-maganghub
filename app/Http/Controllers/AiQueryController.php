@@ -35,7 +35,7 @@ class AiQueryController extends Controller
             $chips = $parsed['chips'] ?? [];
 
             // 2. Deterministic Eloquent executes the filter
-            $submissions = $this->queryService->searchWithFilter($filter, $question);
+            $submissions = $this->queryService->searchWithFilter($filter);
 
             // Format items for frontend
             $items = $submissions->map(function (KakSubmission $sub) {

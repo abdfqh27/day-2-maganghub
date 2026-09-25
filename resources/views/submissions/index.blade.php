@@ -29,7 +29,6 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <div class="flex items-center space-x-2.5">
                 <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-400 to-indigo-500 flex items-center justify-center text-white shadow-inner font-bold text-xs">
-                    ✨
                 </div>
                 <div>
                     <h2 class="text-base font-extrabold text-white leading-tight">Pencarian Arsip Cerdas (AI Query)</h2>
@@ -98,17 +97,17 @@
         <!-- Quick Search Suggestion Pills -->
         <div class="mt-3 flex items-center space-x-2 overflow-x-auto scrollbar-none pb-1 text-xs">
             <span class="text-slate-400 font-medium flex-shrink-0">Contoh pertanyaan:</span>
-            <button type="button" @click="quickSearch('KAK draft bulan ini')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
-                📄 KAK draft bulan ini
+            <button type="button" @click="quickSearch('carikan saya data di bulan ini')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
+                📅 Data di bulan ini
             </button>
             <button type="button" @click="quickSearch('Dokumen final tahun 2026')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
-                ✅ Dokumen final tahun 2026
+                ✅ Final tahun 2026
             </button>
-            <button type="button" @click="quickSearch('KAK dengan anggaran di atas 500 juta')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
+            <button type="button" @click="quickSearch('Anggaran di atas 500 juta')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
                 💰 Anggaran di atas 500 juta
             </button>
-            <button type="button" @click="quickSearch('Dokumen KAK bulan lalu')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
-                📅 Bulan lalu
+            <button type="button" @click="quickSearch('Dokumen tentang anak')" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg whitespace-nowrap transition border border-white/5">
+                👶 Tentang anak
             </button>
         </div>
 
@@ -116,7 +115,7 @@
         <div x-show="isSearchActive" x-cloak class="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div class="flex items-center flex-wrap gap-2">
                 <span class="font-bold text-amber-300 flex items-center space-x-1">
-                    <span>🎯 Filter yang dipahami AI:</span>
+                    <span>Filter yang dipahami AI:</span>
                 </span>
 
                 <template x-for="(chip, idx) in activeChips" :key="idx">

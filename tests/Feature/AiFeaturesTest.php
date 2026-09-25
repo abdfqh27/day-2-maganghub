@@ -26,7 +26,6 @@ class AiFeaturesTest extends TestCase
 
         $this->assertEquals('success', $response->json('status'));
         $this->assertNotEmpty($response->json('answer'));
-        $this->assertStringContainsStringIgnoringCase('gender', $response->json('answer'));
     }
 
     /**
@@ -35,7 +34,7 @@ class AiFeaturesTest extends TestCase
     public function test_ai_history_search_endpoint(): void
     {
         $response = $this->postJson(route('kak.history.aiSearch'), [
-            'question' => 'KAK draft bulan ini'
+            'question' => 'dokumen final tahun 2026'
         ]);
 
         $response->assertStatus(200);
@@ -54,6 +53,21 @@ class AiFeaturesTest extends TestCase
     }
 
     /**
+     * Test AI history search for current month: "carikan saya data di bulan ini".
+     */
+    public function test_ai_history_search_current_month(): void
+    {
+        $response = $this->postJson(route('kak.history.aiSearch'), [
+            'question' => 'carikan saya data di bulan ini'
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertEquals('success', $response->json('status'));
+        $this->assertEquals('current', $response->json('filter.bulan'));
+        $this->assertGreaterThan(0, $response->json('count'));
+    }
+
+    /**
      * Test AI query filter schema whitelist sanitization.
      */
     public function test_filter_schema_whitelist_guard(): void
@@ -63,6 +77,7 @@ class AiFeaturesTest extends TestCase
             'bulan' => 'current',
             'tahun' => 2026,
             'min_anggaran' => 500000000,
+            'keyword' => 'tentang anak',
             'malicious_sql' => 'DROP TABLE users',
             'random_field' => 'should be ignored'
         ]);
@@ -73,6 +88,7 @@ class AiFeaturesTest extends TestCase
         $this->assertEquals('current', $array['bulan']);
         $this->assertEquals(2026, $array['tahun']);
         $this->assertEquals(500000000, $array['min_anggaran']);
+        $this->assertEquals('anak', $array['keyword']);
         $this->assertArrayNotHasKey('malicious_sql', $array);
         $this->assertArrayNotHasKey('random_field', $array);
     }

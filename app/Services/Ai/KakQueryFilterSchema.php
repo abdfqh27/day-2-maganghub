@@ -10,6 +10,7 @@ class KakQueryFilterSchema
         'tahun',
         'min_anggaran',
         'max_anggaran',
+        'keyword',
     ];
 
     public ?string $status = null;
@@ -17,6 +18,7 @@ class KakQueryFilterSchema
     public ?int $tahun = null;
     public ?float $minAnggaran = null;
     public ?float $maxAnggaran = null;
+    public ?string $keyword = null;
 
     /**
      * Build and sanitize schema from raw decoded AI array.
@@ -81,6 +83,18 @@ class KakQueryFilterSchema
             }
         }
 
+        // 6. Keyword / Topik spesifik (sanitasi kata pengantar percakapan)
+        if (!empty($raw['keyword']) && is_string($raw['keyword'])) {
+            $kw = trim($raw['keyword']);
+            // Buang kata pengantar umum percakapan
+            $filler = '/\b(carikan|tampilkan|lihat|tolong|semua|data|dokumen|kak|draft|draf|final|bulan\s+ini|tahun\s+ini|bulan\s+lalu|anggaran)\b/i';
+            $cleanedKw = trim(preg_replace($filler, '', $kw));
+            $cleanedKw = trim(preg_replace('/^(tentang|topik|terkait|judul)\s+/i', '', $cleanedKw));
+            if (mb_strlen($cleanedKw) >= 2) {
+                $schema->keyword = $cleanedKw;
+            }
+        }
+
         return $schema;
     }
 
@@ -93,7 +107,8 @@ class KakQueryFilterSchema
             || $this->bulan !== null
             || $this->tahun !== null
             || $this->minAnggaran !== null
-            || $this->maxAnggaran !== null;
+            || $this->maxAnggaran !== null
+            || $this->keyword !== null;
     }
 
     /**
@@ -107,6 +122,7 @@ class KakQueryFilterSchema
             'tahun' => $this->tahun,
             'min_anggaran' => $this->minAnggaran,
             'max_anggaran' => $this->maxAnggaran,
+            'keyword' => $this->keyword,
         ];
     }
 
@@ -167,6 +183,14 @@ class KakQueryFilterSchema
                 'field' => 'max_anggaran',
                 'label' => 'Max Anggaran: Rp ' . number_format($this->maxAnggaran, 0, ',', '.'),
                 'value' => $this->maxAnggaran,
+            ];
+        }
+
+        if ($this->keyword !== null) {
+            $chips[] = [
+                'field' => 'keyword',
+                'label' => 'Topik: "' . $this->keyword . '"',
+                'value' => $this->keyword,
             ];
         }
 
