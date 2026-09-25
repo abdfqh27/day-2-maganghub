@@ -1,40 +1,41 @@
 @extends('layouts.app')
 
 @section('title', 'Hasil Dokumen KAK - ' . $submission->display_judul)
+@section('page_title', 'Detail Dokumen KAK')
 
 @section('content')
-<div x-data="{ showRegenerateModal: false, selectedNewFormat: '{{ $submission->output_format === 'docx' ? 'pdf' : 'docx' }}' }" class="max-w-5xl mx-auto">
+<div x-data="{ showRegenerateModal: false, selectedNewFormat: '{{ $submission->output_format === 'docx' ? 'pdf' : 'docx' }}' }" class="space-y-6">
 
-    <!-- Breadcrumb & Back -->
-    <div class="mb-6 flex items-center justify-between">
-        <a href="{{ route('submissions.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-brand-600 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            <span>Kembali ke Daftar Submission</span>
+    <!-- Breadcrumb & Navigation -->
+    <div class="flex items-center justify-between">
+        <a href="{{ route('submissions.index') }}" class="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-brand-600 transition">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+            <span>Kembali ke Riwayat Dokumen</span>
         </a>
 
         <div class="flex items-center space-x-2">
-            <span class="text-xs text-slate-500">ID Pengajuan:</span>
-            <span class="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">#{{ $submission->id }}</span>
+            <span class="text-xs text-slate-400">ID Dokumen:</span>
+            <span class="text-xs font-mono font-bold bg-white text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200">#{{ $submission->id }}</span>
         </div>
     </div>
 
     @if(session('auto_download') || request('auto_download'))
-        <!-- Auto Download Banner -->
-        <div class="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/20 flex items-center justify-between gap-4 border border-emerald-500/50">
+        <!-- Auto Download Notice Banner (No inline emoji, clean Font Awesome icon) -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/10 flex items-center justify-between gap-4 border border-emerald-500/50">
             <div class="flex items-center space-x-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-white shrink-0 shadow-inner">
-                    <svg class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-white shrink-0 shadow-inner">
+                    <i class="fa-solid fa-circle-down text-lg"></i>
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-sm sm:text-base leading-tight">File Otomatis Sedang Diunduh!</h3>
-                    <p class="text-xs text-emerald-100 mt-0.5">
-                        Dokumen KAK berformat <strong>{{ strtoupper($submission->output_format) }}</strong> otomatis diunduh ke folder Download Anda.
+                    <h3 class="font-extrabold text-xs sm:text-sm leading-tight">File Otomatis Sedang Diunduh!</h3>
+                    <p class="text-[11px] text-emerald-100 mt-0.5">
+                        Dokumen KAK berformat <strong>{{ strtoupper($submission->output_format) }}</strong> otomatis dikirimkan ke peramban Anda.
                     </p>
                 </div>
             </div>
-            <a href="{{ route('submissions.download', $submission) }}" class="shrink-0 inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-white text-emerald-800 font-extrabold text-xs shadow hover:bg-emerald-50 active:scale-95 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                <span>Klik jika tidak terunduh</span>
+            <a href="{{ route('submissions.download', $submission) }}" class="shrink-0 inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-white text-emerald-800 font-bold text-xs shadow-xs hover:bg-emerald-50 active:scale-95 transition">
+                <i class="fa-solid fa-download text-xs"></i>
+                <span>Unduh Manual</span>
             </a>
         </div>
 
@@ -43,7 +44,6 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Primary trigger: direct location navigation (guaranteed browser download prompt)
                 setTimeout(function() {
                     window.location.href = "{{ route('submissions.download', $submission) }}";
                 }, 150);
@@ -52,18 +52,20 @@
     @endif
 
     <!-- Header Card with Single Download Button & Status -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-        <div class="p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-950 text-white relative">
+    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+        <div class="p-6 sm:p-7 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-950 text-white relative">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                <div class="space-y-2">
-                    <div class="flex items-center space-x-2">
+                <div class="space-y-2 max-w-3xl">
+                    <div class="flex items-center space-x-2.5">
                         @if($submission->output_format === 'pdf')
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-500 text-white tracking-wider uppercase shadow-sm">
-                                Format PDF (.pdf)
+                            <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-600 text-white tracking-wider uppercase shadow-xs">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>Format PDF (.pdf)</span>
                             </span>
                         @else
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-blue-500 text-white tracking-wider uppercase shadow-sm">
-                                Format Word (.docx)
+                            <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-blue-600 text-white tracking-wider uppercase shadow-xs">
+                                <i class="fa-solid fa-file-word"></i>
+                                <span>Format Word (.docx)</span>
                             </span>
                         @endif
 
@@ -72,78 +74,78 @@
                         </span>
                     </div>
 
-                    <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+                    <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
                         {{ $submission->display_judul }}
                     </h1>
 
-                    <p class="text-xs sm:text-sm text-slate-300 max-w-2xl">
-                        Dokumen KAK telah berhasil digenerate menggunakan format dan layout template resmi Kemenko PMK dengan seluruh data yang telah Anda lengkapi.
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        Dokumen Kerangka Acuan Kerja telah disubstitusikan ke template resmi Kemenko PMK dengan seluruh kolom data yang telah Anda lengkapi.
                     </p>
                 </div>
 
-                <!-- Single Adaptive Download Button -->
-                <div class="shrink-0 flex flex-col sm:flex-row md:flex-col gap-3">
+                <!-- Action Controls: Single Adaptive Download Button & Format Switcher -->
+                <div class="shrink-0 flex flex-col sm:flex-row md:flex-col gap-2.5">
                     @if($submission->output_format === 'pdf')
                         <a href="{{ route('submissions.download', $submission) }}" 
-                           class="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 text-white font-extrabold text-sm shadow-lg shadow-rose-600/30 hover:from-rose-500 hover:to-red-500 active:scale-95 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            <span>Download PDF (.pdf)</span>
+                           class="inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-rose-600/30 hover:from-rose-500 hover:to-red-500 active:scale-95 transition">
+                            <i class="fa-solid fa-download text-sm"></i>
+                            <span>Unduh Berkas PDF</span>
                         </a>
                     @else
                         <a href="{{ route('submissions.download', $submission) }}" 
-                           class="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-indigo-600 text-white font-extrabold text-sm shadow-lg shadow-brand-500/30 hover:from-brand-400 hover:to-indigo-500 active:scale-95 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            <span>Download Word (.docx)</span>
+                           class="inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/30 hover:from-brand-500 hover:to-indigo-500 active:scale-95 transition">
+                            <i class="fa-solid fa-download text-sm"></i>
+                            <span>Unduh Berkas Word</span>
                         </a>
                     @endif
 
-                    <!-- Button to open Regenerate format option -->
                     <button type="button" 
                             @click="showRegenerateModal = true"
-                            class="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        <span>Generate ulang format lain</span>
+                            class="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition">
+                        <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                        <span>Generate Ulang Format Lain</span>
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Meta Information Bar -->
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-3">
+        <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-3">
             <div class="flex items-center space-x-4">
-                <span>File Path: <code class="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700 font-mono">{{ $submission->generated_file_path ?: 'Belum tergenerate' }}</code></span>
+                <span>File Path: <code class="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700 font-mono text-[11px]">{{ $submission->generated_file_path ?: 'Belum tergenerate' }}</code></span>
                 <span>Ukuran: <strong class="text-slate-700 font-semibold">{{ $submission->getAbsoluteFilePath() && file_exists($submission->getAbsoluteFilePath()) ? number_format(filesize($submission->getAbsoluteFilePath()) / 1024, 1) . ' KB' : '-' }}</strong></span>
             </div>
             <div>
-                <a href="{{ route('submissions.create') }}" class="font-bold text-brand-600 hover:text-brand-700 hover:underline">
-                    + Buat KAK Baru
+                <a href="{{ route('submissions.create') }}" class="font-bold text-brand-600 hover:text-brand-700 inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Buat Dokumen KAK Baru</span>
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Matriks Jadwal Pelaksanaan / Waktu Pencapaian Keluaran -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-        <div class="px-6 py-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/70">
+    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+        <div class="px-6 py-4.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/70">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                    <i class="fa-solid fa-calendar-days text-sm"></i>
                 </div>
                 <div>
-                    <h2 class="text-base sm:text-lg font-bold text-slate-900">D. Waktu Pencapaian Keluaran (Matriks Jadwal 12 Bulan)</h2>
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900">D. Waktu Pencapaian Keluaran (Matriks Jadwal 12 Bulan)</h2>
                     <p class="text-xs text-slate-500">Tabel jadwal kegiatan yang telah disinkronisasikan dan terceklis pada dokumen KAK (Word / PDF)</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                    Terceklis (&#10003;) di Dokumen Template
+                <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
+                    <span>Terceklis di Dokumen Template</span>
                 </span>
             </div>
         </div>
 
         <div class="p-6">
-            <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-xs">
+            <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
                 <table class="w-full text-xs text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-700 font-extrabold border-b border-slate-200">
@@ -201,10 +203,10 @@
                                 <td class="py-2.5 px-4 border-r border-slate-200 text-slate-800 font-medium">{{ $act['nama'] }}</td>
                                 @for($m = 1; $m <= 12; $m++)
                                     @php $checked = in_array($m, $checkedMonths); @endphp
-                                    <td class="py-2 px-1 text-center border-r border-slate-200 {{ $m === 12 ? 'border-r-0' : '' }} {{ $checked ? 'bg-[#93c47d]/30 font-black text-emerald-900' : 'text-slate-300' }}">
+                                    <td class="py-2 px-1 text-center border-r border-slate-200 {{ $m === 12 ? 'border-r-0' : '' }} {{ $checked ? 'bg-[#93c47d]/30 font-bold text-emerald-900' : 'text-slate-300' }}">
                                         @if($checked)
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#93c47d] text-emerald-950 font-black text-xs shadow-2xs">
-                                                &#10003;
+                                            <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-[#93c47d] text-emerald-950 font-bold text-[10px] shadow-2xs">
+                                                <i class="fa-solid fa-check"></i>
                                             </span>
                                         @else
                                             <span class="text-slate-300 font-light">&middot;</span>
@@ -244,10 +246,10 @@
                                     <td class="py-2.5 px-4 border-r border-slate-200 text-slate-800 font-medium">{{ $act['nama'] }}</td>
                                     @for($m = 1; $m <= 12; $m++)
                                         @php $checked = in_array($m, $checkedMonths); @endphp
-                                        <td class="py-2 px-1 text-center border-r border-slate-200 {{ $m === 12 ? 'border-r-0' : '' }} {{ $checked ? 'bg-[#93c47d]/30 font-black text-emerald-900' : 'text-slate-300' }}">
+                                        <td class="py-2 px-1 text-center border-r border-slate-200 {{ $m === 12 ? 'border-r-0' : '' }} {{ $checked ? 'bg-[#93c47d]/30 font-bold text-emerald-900' : 'text-slate-300' }}">
                                             @if($checked)
-                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#93c47d] text-emerald-950 font-black text-xs shadow-2xs">
-                                                    &#10003;
+                                                <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-[#93c47d] text-emerald-950 font-bold text-[10px] shadow-2xs">
+                                                    <i class="fa-solid fa-check"></i>
                                                 </span>
                                             @else
                                                 <span class="text-slate-300 font-light">&middot;</span>
@@ -262,48 +264,48 @@
             </div>
 
             <div class="mt-4 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-4">
                     <span class="flex items-center space-x-1.5">
                         <span class="w-3.5 h-3.5 rounded bg-[#93c47d] inline-block border border-emerald-600/30"></span>
-                        <span class="text-slate-600 font-medium">Bulan Aktif Pelaksanaan (Checklist &#10003;)</span>
+                        <span class="text-slate-600 font-medium">Bulan Aktif Pelaksanaan</span>
                     </span>
                     <span class="flex items-center space-x-1.5">
                         <span class="w-3.5 h-3.5 rounded bg-white inline-block border border-slate-200"></span>
-                        <span class="text-slate-400">Tidak ada kegiatan</span>
+                        <span class="text-slate-400">Tidak Ada Kegiatan</span>
                     </span>
                 </div>
                 <div class="italic text-[11px] text-slate-400">
-                    *Tampilan tabel di atas persis dengan tabel "D. WAKTU PENCAPAIAN KELUARAN" pada file Word &amp; PDF terunduh.
+                    Sesuai dengan tabel D. Waktu Pencapaian Keluaran pada dokumen template.
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Data Preview Section (Grouped by Document Section) -->
-    <div class="space-y-6 mb-12">
+    <div class="space-y-4">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-lg sm:text-xl font-bold text-slate-900">Ringkasan Data yang Telah Diisi</h2>
-                <p class="text-xs text-slate-500">Berikut adalah rekapitulasi data isian Anda yang disubstitusikan ke dalam dokumen template.</p>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900">Rekapitulasi Data Isian KAK</h2>
+                <p class="text-xs text-slate-500">Rincian nilai yang disubstitusikan ke dalam merge field dokumen template.</p>
             </div>
-            <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-3 py-1 rounded-full border border-slate-200">
+            <span class="text-xs font-semibold bg-white text-slate-600 px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
                 {{ count($submission->data ?? []) }} Nilai Tersimpan
             </span>
         </div>
 
         @foreach($groupedData as $sectionTitle => $fields)
-            <div x-data="{ open: false }" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div x-data="{ open: false }" class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
                 <button type="button" 
                         @click="open = !open" 
                         class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition border-b border-slate-100">
                     <div class="flex items-center space-x-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-brand-500"></div>
-                        <h3 class="text-sm sm:text-base font-bold text-slate-800">{{ $sectionTitle }}</h3>
-                        <span class="text-xs text-slate-400">({{ count($fields) }} field)</span>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-800">{{ $sectionTitle }}</h3>
+                        <span class="text-xs text-slate-400">({{ count($fields) }} kolom)</span>
                     </div>
                     <div class="flex items-center space-x-2 text-slate-400">
                         <span class="text-xs font-semibold" x-text="open ? 'Tutup' : 'Lihat Detail'"></span>
-                        <svg class="w-4 h-4 transform transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <i class="fa-solid fa-chevron-down text-xs transform transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </div>
                 </button>
 
@@ -349,29 +351,29 @@
     <div x-show="showRegenerateModal" 
          x-cloak 
          class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div @click.away="showRegenerateModal = false" class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 sm:p-8 space-y-5 border border-slate-200">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h3 class="text-lg font-bold text-slate-900">Generate Ulang Format</h3>
+        <div @click.away="showRegenerateModal = false" class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900">Generate Ulang Format</h3>
                 <button type="button" @click="showRegenerateModal = false" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
             <p class="text-xs text-slate-600 leading-relaxed">
-                Anda dapat membuat ulang dokumen KAK dengan format lain tanpa harus mengisi ulang data. File lama akan digantikan oleh file baru yang Anda pilih.
+                Anda dapat membuat ulang dokumen KAK dengan format lain tanpa harus mengisi ulang data. Berkas sebelumnya akan digantikan oleh format baru yang Anda pilih.
             </p>
 
             <form action="{{ route('submissions.regenerate', $submission) }}" method="POST" class="space-y-4">
                 @csrf
-                <div class="space-y-3">
-                    <label class="flex items-center p-3.5 rounded-xl border-2 cursor-pointer transition"
+                <div class="space-y-2.5">
+                    <label class="flex items-center p-3 rounded-xl border-2 cursor-pointer transition"
                            :class="selectedNewFormat === 'docx' ? 'border-brand-600 bg-brand-50' : 'border-slate-200 hover:border-slate-300'">
                         <input type="radio" name="output_format" value="docx" x-model="selectedNewFormat" class="sr-only">
                         <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mr-3">
-                            W
+                            <i class="fa-solid fa-file-word text-sm"></i>
                         </div>
                         <div class="flex-1">
-                            <span class="text-sm font-bold text-slate-900 block">Word (.docx)</span>
+                            <span class="text-xs font-bold text-slate-900 block">Word (.docx)</span>
                             <span class="text-[11px] text-slate-500">Format Microsoft Word yang dapat diedit kembali</span>
                         </div>
                         <div class="w-4 h-4 rounded-full border flex items-center justify-center"
@@ -380,14 +382,14 @@
                         </div>
                     </label>
 
-                    <label class="flex items-center p-3.5 rounded-xl border-2 cursor-pointer transition"
+                    <label class="flex items-center p-3 rounded-xl border-2 cursor-pointer transition"
                            :class="selectedNewFormat === 'pdf' ? 'border-rose-600 bg-rose-50' : 'border-slate-200 hover:border-slate-300'">
                         <input type="radio" name="output_format" value="pdf" x-model="selectedNewFormat" class="sr-only">
                         <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs mr-3">
-                            P
+                            <i class="fa-solid fa-file-pdf text-sm"></i>
                         </div>
                         <div class="flex-1">
-                            <span class="text-sm font-bold text-slate-900 block">PDF (.pdf)</span>
+                            <span class="text-xs font-bold text-slate-900 block">PDF (.pdf)</span>
                             <span class="text-[11px] text-slate-500">Format PDF siap cetak via LibreOffice headless</span>
                         </div>
                         <div class="w-4 h-4 rounded-full border flex items-center justify-center"
@@ -397,11 +399,11 @@
                     </label>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end space-x-3">
+                <div class="pt-2 flex items-center justify-end space-x-2">
                     <button type="button" @click="showRegenerateModal = false" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold shadow hover:from-brand-700 hover:to-indigo-700 transition">
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold shadow-xs hover:from-brand-700 hover:to-indigo-700 transition">
                         Proses Sekarang
                     </button>
                 </div>

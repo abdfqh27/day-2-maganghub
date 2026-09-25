@@ -1,45 +1,48 @@
 @extends('layouts.app')
 
 @section('title', 'Formulir Pengisian KAK Digital')
+@section('page_title', 'Formulir KAK Baru')
 
 @section('content')
-<div x-data="kakWizard()" class="max-w-5xl mx-auto">
+<div x-data="kakWizard()" class="space-y-6">
 
     <!-- Wizard Header & Title -->
-    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-xs border border-slate-200/80">
         <div>
-            <div class="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full mb-2 border border-brand-100">
+            <div class="inline-flex items-center space-x-2 text-[11px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg mb-2 border border-brand-100">
+                <i class="fa-solid fa-list-check text-xs text-brand-600"></i>
                 <span>Multi-Step Wizard</span>
                 <span>•</span>
                 <span x-text="'Langkah ' + (currentStep + 1) + ' dari ' + totalSteps"></span>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" x-text="stepTitles[currentStep]"></h1>
-            <p class="text-sm text-slate-500 mt-1">Lengkapi data Kerangka Acuan Kegiatan sesuai template digitalisasi dokumen resmi.</p>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" x-text="stepTitles[currentStep]"></h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Lengkapi data Kerangka Acuan Kegiatan sesuai template digitalisasi dokumen resmi.</p>
         </div>
 
         <div class="flex items-center space-x-3">
-            <span x-show="autoSavedMessage" x-transition class="text-xs font-semibold text-emerald-600 flex items-center space-x-1 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span x-show="autoSavedMessage" x-transition class="text-xs font-semibold text-emerald-600 flex items-center space-x-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                <i class="fa-solid fa-check text-xs"></i>
                 <span x-text="autoSavedMessage"></span>
             </span>
 
             <form action="{{ route('submissions.clearDraft') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh draf isian form?');">
                 @csrf
-                <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-3 py-1.5 rounded-lg transition shadow-sm">
-                    Reset Draf
+                <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-3 py-1.5 rounded-xl transition shadow-2xs inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                    <span>Reset Draf</span>
                 </button>
             </form>
         </div>
     </div>
 
     <!-- Progress Bar & Step Navigation Indicator -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-8">
+    <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80">
         <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-2">
             <span>Progress Pengisian</span>
-            <span class="text-brand-600" x-text="progressPercentage + '%'"></span>
+            <span class="text-brand-600 font-mono" x-text="progressPercentage + '%'"></span>
         </div>
-        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-            <div class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-300 ease-out" :style="'width: ' + progressPercentage + '%'"></div>
+        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div class="bg-gradient-to-r from-brand-600 to-indigo-600 h-2 rounded-full transition-all duration-300 ease-out" :style="'width: ' + progressPercentage + '%'"></div>
         </div>
 
         <!-- Stepper Pill Tabs -->
@@ -47,15 +50,21 @@
             <template x-for="(title, idx) in stepTitles" :key="idx">
                 <button type="button"
                         @click="goToStep(idx)"
-                        class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition flex items-center space-x-1.5"
+                        class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center space-x-1.5"
                         :class="{
-                            'bg-brand-600 text-white shadow-sm': currentStep === idx,
+                            'bg-brand-600 text-white shadow-xs font-bold': currentStep === idx,
                             'bg-slate-100 text-slate-700 hover:bg-slate-200': currentStep > idx,
                             'bg-slate-50 text-slate-400 hover:text-slate-600': currentStep < idx
                         }">
                     <span class="w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]"
-                          :class="currentStep > idx ? 'bg-emerald-600 text-white' : (currentStep === idx ? 'bg-white text-brand-600 font-bold' : 'bg-slate-200 text-slate-600')"
-                          x-text="currentStep > idx ? '✓' : (idx + 1)"></span>
+                          :class="currentStep > idx ? 'bg-emerald-600 text-white' : (currentStep === idx ? 'bg-white text-brand-600 font-bold' : 'bg-slate-200 text-slate-600')">
+                        <template x-if="currentStep > idx">
+                            <i class="fa-solid fa-check text-[8px]"></i>
+                        </template>
+                        <template x-if="currentStep <= idx">
+                            <span x-text="idx + 1"></span>
+                        </template>
+                    </span>
                     <span x-text="title.replace(/^[0-9]+\.\s*/, '')"></span>
                 </button>
             </template>
@@ -87,14 +96,15 @@
                                 <p class="text-xs text-slate-500 mt-1">Lengkapi kolom di bawah ini. Tanda <span class="text-rose-500 font-bold">*</span> menandakan field utama yang wajib diisi.</p>
                             </div>
                             <div class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-3 py-1.5 rounded-xl self-start sm:self-auto font-medium">
-                                <span>💡 <strong>Tips:</strong> Klik tombol <em>"Gunakan Contoh"</em> pada setiap kolom untuk auto-fill contoh teks.</span>
+                                <i class="fa-solid fa-circle-info text-blue-600 text-xs mr-1"></i>
+                                <span><strong>Tips:</strong> Klik tombol <em>"Gunakan Contoh"</em> pada setiap kolom untuk auto-fill contoh teks.</span>
                             </div>
                         </div>
                     </div>
 
                     @if($hasCodeField)
                         <div class="mb-6 p-3.5 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-3 text-xs text-amber-900 shadow-2xs">
-                            <span class="text-lg leading-none mt-0.5">🏷️</span>
+                            <i class="fa-solid fa-tags text-amber-600 text-sm mt-0.5 shrink-0"></i>
                             <div class="leading-relaxed">
                                 <p class="font-bold text-amber-950">Petunjuk Pengisian Kolom Bertanda [KODE / NOMOR]:</p>
                                 <p class="mt-0.5 text-amber-800">Kolom dengan badge <span class="bg-amber-200/80 text-amber-900 font-extrabold px-1.5 py-0.5 rounded border border-amber-300">KODE / NOMOR</span> merupakan kode klasifikasi program, RO, KRO, atau indikator (sesuai tanda <code>(……)</code> pada template dokumen resmi KAK). Silakan isi dengan kode yang sesuai, atau klik tombol <em>Gunakan Contoh</em> untuk format standar.</p>
@@ -104,30 +114,30 @@
 
                     @if($isWaktuSection)
                         <!-- Interactive WAKTU PENCAPAIAN KELUARAN Schedule Table -->
-                        <div class="mb-8 bg-white rounded-2xl border-2 border-brand-300/80 shadow-sm overflow-hidden">
+                        <div class="mb-8 bg-white rounded-2xl border border-brand-200 shadow-xs overflow-hidden">
                             <div class="bg-gradient-to-r from-brand-50 via-indigo-50/60 to-emerald-50/40 p-5 border-b border-brand-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <div class="flex items-center space-x-2">
                                         <span class="p-2 bg-brand-600 text-white rounded-xl shadow-xs">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            <i class="fa-solid fa-calendar-days text-sm"></i>
                                         </span>
                                         <h3 class="text-base sm:text-lg font-black text-slate-900">D. WAKTU PENCAPAIAN KELUARAN (Tabel Matriks Jadwal)</h3>
                                     </div>
                                     <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                                        Klik atau ceklis kotak bulan (1 s.d. 12) pelaksanaan kegiatan di bawah ini. Kolom yang diceklis otomatis bertanda (<strong class="text-emerald-700">✓</strong>) dan ter-highlight hijau (<code class="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">#93c47d</code>) pada tabel dokumen Word & PDF hasil generate.
+                                        Ceklis kotak bulan (1 s.d. 12) pelaksanaan kegiatan di bawah ini. Kolom yang diceklis otomatis terisi tanda centang dan ter-highlight hijau (<code class="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">#93c47d</code>) pada tabel dokumen Word & PDF hasil generate.
                                     </p>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
                                     <button type="button"
                                             @click="applyDefaultSchedule()"
                                             class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95 cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        <i class="fa-solid fa-check text-xs"></i>
                                         <span>Jadwal Standar KAK</span>
                                     </button>
                                     <button type="button"
                                             @click="clearSchedule()"
-                                            class="inline-flex items-center space-x-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 transition cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 transition cursor-pointer">
+                                        <i class="fa-solid fa-rotate-left text-xs"></i>
                                         <span>Kosongkan</span>
                                     </button>
                                 </div>
@@ -195,7 +205,7 @@
                                                                         : 'bg-slate-50 text-slate-300 hover:bg-slate-100 hover:text-slate-500 border-slate-200'"
                                                                     class="w-7 h-7 mx-auto rounded-lg border flex items-center justify-center text-xs transition active:scale-90 cursor-pointer"
                                                                     title="Bulan {{ $m }}: Klik untuk ceklis / hapus centang">
-                                                                <span x-show="isMonthChecked('{{ $kegKey }}', {{ $m }})" class="font-extrabold text-sm">✓</span>
+                                                                <span x-show="isMonthChecked('{{ $kegKey }}', {{ $m }})" class="font-bold text-[10px]"><i class="fa-solid fa-check"></i></span>
                                                                 <span x-show="!isMonthChecked('{{ $kegKey }}', {{ $m }})" class="text-[10px] text-slate-400 font-mono">{{ $m }}</span>
                                                             </button>
                                                         </td>
@@ -207,7 +217,7 @@
                                                             <button type="button" @click="setQuarter('{{ $kegKey }}', 3)" class="px-1.5 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold transition">Q3</button>
                                                             <button type="button" @click="setQuarter('{{ $kegKey }}', 4)" class="px-1.5 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold transition">Q4</button>
                                                             <button type="button" @click="setAllMonths('{{ $kegKey }}')" class="px-1.5 py-0.5 rounded bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 font-bold transition">All</button>
-                                                            <button type="button" @click="resetMonths('{{ $kegKey }}')" class="px-1.5 py-0.5 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold transition">✕</button>
+                                                            <button type="button" @click="resetMonths('{{ $kegKey }}')" class="px-1.5 py-0.5 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold transition" title="Kosongkan Baris"><i class="fa-solid fa-xmark"></i></button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -272,7 +282,7 @@
                                                                                 ? 'bg-emerald-600 text-white font-black border-emerald-600 shadow-2xs' 
                                                                                 : 'bg-slate-50 text-slate-300 hover:bg-slate-100 hover:text-slate-500 border-slate-200'"
                                                                             class="w-7 h-7 mx-auto rounded-lg border flex items-center justify-center text-xs transition active:scale-90 cursor-pointer">
-                                                                        <span x-show="isMonthChecked('{{ $kegKey }}', {{ $m }})" class="font-extrabold text-sm">✓</span>
+                                                                        <span x-show="isMonthChecked('{{ $kegKey }}', {{ $m }})" class="font-bold text-[10px]"><i class="fa-solid fa-check"></i></span>
                                                                         <span x-show="!isMonthChecked('{{ $kegKey }}', {{ $m }})" class="text-[10px] text-slate-400 font-mono">{{ $m }}</span>
                                                                     </button>
                                                                 </td>
@@ -284,7 +294,7 @@
                                                                     <button type="button" @click="setQuarter('{{ $kegKey }}', 3)" class="px-1.5 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold transition">Q3</button>
                                                                     <button type="button" @click="setQuarter('{{ $kegKey }}', 4)" class="px-1.5 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold transition">Q4</button>
                                                                     <button type="button" @click="setAllMonths('{{ $kegKey }}')" class="px-1.5 py-0.5 rounded bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 font-bold transition">All</button>
-                                                                    <button type="button" @click="resetMonths('{{ $kegKey }}')" class="px-1.5 py-0.5 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold transition">✕</button>
+                                                                    <button type="button" @click="resetMonths('{{ $kegKey }}')" class="px-1.5 py-0.5 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold transition" title="Kosongkan Baris"><i class="fa-solid fa-xmark"></i></button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -351,8 +361,9 @@
                                 <!-- Interactive Example Card -->
                                 <div class="mt-2 p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs {{ $isCode ? 'bg-amber-100/50 border-amber-200/80 text-amber-950' : 'bg-slate-100/70 border-slate-200/80 text-slate-700' }}">
                                     <div class="flex items-start sm:items-center gap-2 min-w-0">
-                                        <span class="font-bold shrink-0 flex items-center gap-1 {{ $isCode ? 'text-amber-800' : 'text-brand-700' }}">
-                                            <span>💡</span> <span>Contoh:</span>
+                                        <span class="font-bold shrink-0 flex items-center gap-1.5 {{ $isCode ? 'text-amber-800' : 'text-brand-700' }}">
+                                            <i class="fa-solid fa-lightbulb text-[11px] {{ $isCode ? 'text-amber-600' : 'text-brand-600' }}"></i>
+                                            <span>Contoh:</span>
                                         </span>
                                         <span class="italic font-medium select-all truncate sm:whitespace-normal {{ $isCode ? 'font-mono text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded border border-amber-300/60' : 'text-slate-700' }}" title="{{ $placeholderText }}">"{{ $placeholderText }}"</span>
                                     </div>
@@ -360,7 +371,7 @@
                                             @click="useExample('{{ $key }}', '{{ addslashes($placeholderText) }}')"
                                             title="Klik untuk mengisi kolom ini dengan contoh teks"
                                             class="shrink-0 self-end sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-2xs cursor-pointer active:scale-95 {{ $isCode ? 'bg-amber-200 text-amber-900 hover:bg-amber-300' : 'bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100' }}">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                        <i class="fa-solid fa-paste text-[10px]"></i>
                                         <span>Gunakan Contoh</span>
                                     </button>
                                 </div>
@@ -478,7 +489,7 @@
                         x-show="currentStep > 0"
                         @click="prevStep()"
                         class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 transition active:scale-95 shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
                     <span>Sebelumnya</span>
                 </button>
             </div>
@@ -493,15 +504,15 @@
                             ? 'bg-emerald-500 text-white border-2 border-emerald-600 shadow-emerald-500/25 shadow-md' 
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'">
                     <template x-if="!isSavingSession && !sessionSavedSuccess">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        <i class="fa-solid fa-floppy-disk text-slate-600 text-xs"></i>
                     </template>
                     <template x-if="isSavingSession">
-                        <svg class="animate-spin w-4 h-4 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        <i class="fa-solid fa-circle-notch fa-spin text-slate-600 text-xs"></i>
                     </template>
                     <template x-if="sessionSavedSuccess">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        <i class="fa-solid fa-check text-white text-xs"></i>
                     </template>
-                    <span x-text="isSavingSession ? 'Menyimpan Sesi...' : (sessionSavedSuccess ? '✓ Sesi Berhasil Disimpan!' : 'Simpan Sesi')"></span>
+                    <span x-text="isSavingSession ? 'Menyimpan Sesi...' : (sessionSavedSuccess ? 'Sesi Berhasil Disimpan!' : 'Simpan Sesi')"></span>
                 </button>
 
                 <!-- Next Button (Step 0 to totalSteps - 2) -->
@@ -510,15 +521,15 @@
                         @click="nextStep()"
                         class="inline-flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-brand-700 hover:to-indigo-700 transition active:scale-95">
                     <span x-text="currentStep === totalSteps - 2 ? 'Lanjut ke Pilih Format' : 'Seksi Berikutnya'"></span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
                 </button>
 
                 <!-- Final Submit Button (at final step) -->
                 <button type="submit"
                         x-show="currentStep === totalSteps - 1"
                         class="inline-flex items-center space-x-2 px-7 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-sm shadow-lg hover:from-emerald-700 hover:to-teal-700 transition active:scale-95 cursor-pointer">
-                    <svg x-show="!isSubmitting" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    <svg x-show="isSubmitting" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                    <i x-show="!isSubmitting" class="fa-solid fa-file-arrow-down text-sm"></i>
+                    <i x-show="isSubmitting" class="fa-solid fa-circle-notch fa-spin text-sm"></i>
                     <span x-text="isSubmitting ? 'Memproses & Mengunduh Dokumen...' : 'Generate & Download Dokumen Sekarang'"></span>
                 </button>
             </div>
@@ -533,8 +544,8 @@
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 translate-y-4"
              class="fixed bottom-24 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl border border-emerald-500 flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-black text-white">
-                ✓
+            <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-white">
+                <i class="fa-solid fa-check text-sm"></i>
             </div>
             <div>
                 <h4 class="font-bold text-xs sm:text-sm">Sesi Berhasil Disimpan!</h4>
@@ -556,9 +567,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
                 </span>
-                <svg class="w-5 h-5 text-amber-200 group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
-                </svg>
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-200 group-hover:rotate-12 transition-transform text-sm"></i>
                 <span class="text-xs sm:text-sm font-bold tracking-tight">Tanya Asisten KAK</span>
             </button>
         </div>
@@ -578,7 +587,7 @@
             <div class="px-5 py-4 bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white flex items-center justify-between shadow-sm">
                 <div class="flex items-center space-x-3">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-indigo-500 flex items-center justify-center text-white shadow-inner font-bold text-sm">
-                        ✨
+                        <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
                     </div>
                     <div>
                         <div class="flex items-center space-x-2">
@@ -594,13 +603,13 @@
                             @click="clearMessages()"
                             class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
                             title="Hapus Riwayat Chat">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <i class="fa-regular fa-trash-can text-xs"></i>
                     </button>
                     <button type="button"
                             @click="isOpen = false"
                             class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
                             title="Tutup Widget">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
             </div>
@@ -659,14 +668,17 @@
             <!-- Quick Suggestions Chips -->
             <div class="px-3 py-2 bg-white border-t border-slate-100 flex items-center space-x-1.5 overflow-x-auto scrollbar-none text-[11px]">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">Coba:</span>
-                <button type="button" @click="askQuick('Apa itu GAP dalam KAK?')" class="px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60">
-                    💡 Apa itu GAP?
+                <button type="button" @click="askQuick('Apa itu GAP dalam KAK?')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60 cursor-pointer">
+                    <i class="fa-solid fa-circle-question text-brand-500 text-[10px]"></i>
+                    <span>Apa itu GAP?</span>
                 </button>
-                <button type="button" @click="askQuick('Bagaimana aturan kode RO dan KRO?')" class="px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60">
-                    📋 Kode RO / KRO
+                <button type="button" @click="askQuick('Bagaimana aturan kode RO dan KRO?')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60 cursor-pointer">
+                    <i class="fa-solid fa-barcode text-indigo-500 text-[10px]"></i>
+                    <span>Kode RO / KRO</span>
                 </button>
-                <button type="button" @click="askQuick('Bagaimana format pengisian RAB dan SBM?')" class="px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60">
-                    💰 Format RAB
+                <button type="button" @click="askQuick('Bagaimana format pengisian RAB dan SBM?')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 rounded-lg whitespace-nowrap transition border border-slate-200/60 cursor-pointer">
+                    <i class="fa-solid fa-coins text-amber-500 text-[10px]"></i>
+                    <span>Format RAB</span>
                 </button>
             </div>
 
@@ -829,7 +841,7 @@ function kakWizard() {
                 if (manual) {
                     this.isSavingSession = false;
                     this.sessionSavedSuccess = true;
-                    this.autoSavedMessage = '✓ Sesi & Draf Tersimpan!';
+                    this.autoSavedMessage = 'Sesi & Draf Tersimpan!';
                     setTimeout(() => { 
                         this.sessionSavedSuccess = false; 
                         this.autoSavedMessage = '';
